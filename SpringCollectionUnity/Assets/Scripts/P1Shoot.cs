@@ -37,19 +37,38 @@ public class P1Shoot : MonoBehaviour {
     public float dammage;
     public Slider slidd;
 
+    public GameObject seed;
+    public SeedProjectile sp;
+    public bool canshoot;
+
+    public GameObject seedSpawn;
+    public GameObject tempSeed;
+    public float newValue;
+    public int seedsLeft;
+    public Text t1;
+    public Text t2;
+
+   // public SeedScript seedScript;
+
 	// Use this for initialization
 	void Start ()
     {
+        canshoot = true;
         camerra = GameObject.Find("Main Camera");
         groundPiece = Resources.Load("Prefabs/Ground") as GameObject;
+        seedSpawn = GameObject.Find("SeedLaunchPos");
+        seed = Resources.Load("Prefabs/Seed") as GameObject;
         GenerateMap();
+        newValue = Random.Range(1.0f, 20.0f);
+        seedsLeft = 20;
 	}
 	void GenerateMap()
     {
         float f = 0;
-        for(int i = 0; i < 150; i++)
+        Instantiate(groundPiece, new Vector3(f, 2f, 0f), Quaternion.identity);
+        for (int i = 0; i < 150; i++)
         {
-            f += 7f;
+            f += 4.8f;
             Instantiate(groundPiece, new Vector3(f, 2f, 0f), Quaternion.identity);
             Instantiate(groundPiece, new Vector3(-f, 2f, 0f), Quaternion.identity);
         }
@@ -58,9 +77,18 @@ public class P1Shoot : MonoBehaviour {
 	void Update ()
     {
         GetMovement();
-        GetTouch();
+        if(canshoot)
+        {
+            GetTouch();
+        }
+       if(Input.GetKeyDown("f"))
+        {
+            TestshooT();
+        }
         AnimateTontu();
         camerra.transform.position = Vector3.Lerp(camerra.transform.position, new Vector3(transform.position.x, camerra.transform.position.y, -10), 2f * Time.deltaTime);
+        t1.text = "" + seedsLeft;
+        t2.text = "" + newValue.ToString("0");
     }
     
     void GetTouch()
@@ -68,36 +96,91 @@ public class P1Shoot : MonoBehaviour {
 
         for(int i = 0; i < Input.touchCount; i++)
         {
+            
             if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
             {
-                startTouchPos = Input.GetTouch(0).position;
-                touchPos = Input.GetTouch(0).position;
+                Ray raycast = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+                RaycastHit raycastHit;
+
+                if (Physics.Raycast(raycast, out raycastHit))
+                {
+                    if(raycastHit.collider.name == "GetToch")
+                    {
+                        startTouchPos = Input.GetTouch(0).position;
+                        touchPos = Input.GetTouch(0).position;
+                    }
+                }    
             }
             if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
             {
-                touchPos = Input.GetTouch(0).position;
+                Ray raycast = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+                RaycastHit raycastHit;
+
+                if (Physics.Raycast(raycast, out raycastHit))
+                {
+                    if (raycastHit.collider.name == "GetToch")
+                    {
+                        touchPos = Input.GetTouch(0).position;
+                        if (distanssi > 500)
+                        {
+                            distanssi = 500;
+                        }
+                        dammage = 1f / maxdistanssi * distanssi;
+                        spring.transform.localPosition = new Vector3(0, 1f * -dammage + 0.7f, 0.45f);
+                    }
+                }
             }
             if(Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
             {
-                if(distanssi > 500)
+                Ray raycast = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+                RaycastHit raycastHit;
+                if (Physics.Raycast(raycast, out raycastHit))
                 {
-                    distanssi = 500;
-                }
-                if (distanssi < 500)
-                {
-
-                }
-                dammage = 1f / maxdistanssi * distanssi;
-                //boomshakalaka
+                    if (raycastHit.collider.name == "GetToch")
+                    {
+                        Shoot();
+                        spring.transform.localPosition = new Vector3(0,0.7f, 0.45f);
+                        canshoot = false;
+                        StartCoroutine(Waitshoot());
+                        //boomshakalaka
+                    }
+                } 
             }
         }
         
        
         // distanssi = Calculate();
         distanssi = Vector2.Distance(startTouchPos, touchPos);
-        Text o;
-        o = GameObject.Find("shib").GetComponent<Text>();
-        o.text = "" + distanssi;
+    }
+    IEnumerator Waitshoot()
+    {
+        yield return new WaitForSeconds(0.5f);
+        canshoot = true;
+    }
+    void TestshooT()
+    {
+        if (seedsLeft > 0)
+        {
+            tempSeed = Instantiate(seed, seedSpawn.transform.position, Quaternion.identity);
+            sp = tempSeed.GetComponent<SeedProjectile>();
+            sp.multiplier = dammage;
+            sp.Launch(0.8f, newValue);
+            newValue = Random.Range(1.0f, 20.0f);
+            seedsLeft--;
+        }
+    }
+    void Shoot()
+    {
+        if(seedsLeft > 0)
+        {
+            tempSeed = Instantiate(seed, seedSpawn.transform.position, Quaternion.identity);
+            sp = tempSeed.GetComponent<SeedProjectile>();
+            sp.multiplier = dammage;
+            sp.Launch(dammage, newValue);
+            newValue = Random.Range(1.0f, 20.0f);
+            seedsLeft--;
+        }
+       
     }
     float Calculate()
     {
@@ -120,15 +203,10 @@ public class P1Shoot : MonoBehaviour {
         }
         return f1 + f2;
     }
-    public void OnValueChange()
-    {
-        spring.transform.localPosition = new Vector3(0, 0.7f - slidd.value, 0.45f);
-    }
     void AnimateTontu()
     {
         Debug.Log("AnimateTontu");
         timer += 1f * Time.deltaTime;
-        Debug.Log(timer);
         
         if(timer > 0.15f)
         {
