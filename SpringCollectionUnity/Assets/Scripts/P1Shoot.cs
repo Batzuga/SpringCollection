@@ -47,7 +47,7 @@ public class P1Shoot : MonoBehaviour {
     public int seedsLeft;
     public Text t1;
     public Text t2;
-
+    public float shootPower;
    // public SeedScript seedScript;
 
 	// Use this for initialization
@@ -85,6 +85,42 @@ public class P1Shoot : MonoBehaviour {
         {
             TestshooT();
         }
+       if(Input.GetKey("j"))
+        {
+            shootPower += 1f * Time.deltaTime;
+            if(shootPower > 1f)
+            {
+                shootPower = 1f;
+            }
+            spring.transform.localPosition = new Vector3(0, 1f * -shootPower + 0.7f, 0.45f);
+
+        }
+        if(Input.GetKey("k"))
+        {
+            shootPower -= 1f * Time.deltaTime;
+            if(shootPower < 0)
+            {
+                shootPower = 0;
+            }
+            spring.transform.localPosition = new Vector3(0, 1f * -shootPower + 0.7f, 0.45f);
+        }
+        if(Input.GetKey("d"))
+        {
+            moveRight = true;
+        }
+        if (Input.GetKeyUp("d"))
+        {
+            moveRight = false;
+        }
+        if (Input.GetKey("a"))
+        {
+            moveLeft = true;
+        }
+        if (Input.GetKeyUp("a"))
+        {
+            moveLeft = false;
+        }
+
         AnimateTontu();
         camerra.transform.position = Vector3.Lerp(camerra.transform.position, new Vector3(transform.position.x, camerra.transform.position.y, -10), 2f * Time.deltaTime);
         t1.text = "" + seedsLeft;
@@ -152,6 +188,13 @@ public class P1Shoot : MonoBehaviour {
         // distanssi = Calculate();
         distanssi = Vector2.Distance(startTouchPos, touchPos);
     }
+    IEnumerator GameOver()
+    {
+        yield return new WaitForSeconds(5.0f);
+        GameObject.Find("Fade").GetComponent<Fade>().FadeOutIn(false);
+        yield return new WaitForSeconds(2.5f);
+        Application.LoadLevel("P2");
+    }
     IEnumerator Waitshoot()
     {
         yield return new WaitForSeconds(0.5f);
@@ -163,10 +206,16 @@ public class P1Shoot : MonoBehaviour {
         {
             tempSeed = Instantiate(seed, seedSpawn.transform.position, Quaternion.identity);
             sp = tempSeed.GetComponent<SeedProjectile>();
-            sp.multiplier = dammage;
-            sp.Launch(0.8f, newValue);
+            sp.multiplier = shootPower;
+            sp.Launch(shootPower, newValue);
             newValue = Random.Range(1.0f, 20.0f);
             seedsLeft--;
+            if(seedsLeft == 0)
+            {
+                StartCoroutine(GameOver());
+            }
+            spring.transform.localPosition = new Vector3(0, 0.7f, 0.45f);
+            shootPower = 0f;
         }
     }
     void Shoot()

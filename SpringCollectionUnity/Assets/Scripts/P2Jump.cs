@@ -23,6 +23,7 @@ public class P2Jump : MonoBehaviour {
     public float tempFloat;
     public float jumppowerr;
     public GameObject block;
+
 	// Use this for initialization
 	void Start ()
     {
@@ -31,8 +32,15 @@ public class P2Jump : MonoBehaviour {
         t.text = "Score: 0";
         maxJump = 620f;
         speed = 2.8f;
+        PlayerPrefs.SetInt("P2Score", score);
 	}
-	
+    IEnumerator GameOver()
+    {
+        yield return new WaitForSeconds(1.0f);
+        GameObject.Find("Fade").GetComponent<Fade>().FadeOutIn(false);
+        yield return new WaitForSeconds(2.5f);
+        Application.LoadLevel("P3");
+    }
 	// Update is called once per frame
 	void Update ()
     {
@@ -44,24 +52,20 @@ public class P2Jump : MonoBehaviour {
         }
         if (Input.GetKey("j"))
         {
-            if (Input.GetKey("k") == false)
+            jumppowerr += 1f * Time.deltaTime;
+            if (jumppowerr > 1)
             {
-                jumppowerr += 1f * Time.deltaTime;
-                if (jumppowerr > 1)
-                {
-                    jumppowerr = 1;
-                }
-            }
-           
+                jumppowerr = 1;
+            }         
         }
 
-        if(Input.GetKeyDown("l"))
+        if (Input.GetKey("k"))
         {
-            jumppowerr = 0f;
-        }
-        if(Input.GetKeyUp("j"))
-        {
-            TestJump();
+            jumppowerr -= 1f * Time.deltaTime;
+            if (jumppowerr < 0)
+            {
+                jumppowerr = 0;
+            }
         }
 
        if(Input.GetKeyDown("f"))
@@ -161,6 +165,7 @@ public class P2Jump : MonoBehaviour {
             score++;
             t.text = "Score: " + score;
             Instantiate(block, new Vector3(transform.position.x + 27f, Random.Range(3f, -2f), 0), Quaternion.identity);
+            PlayerPrefs.SetInt("P2Score", score);
         }
     }
     void OnCollisionEnter2D(Collision2D col)
@@ -172,6 +177,7 @@ public class P2Jump : MonoBehaviour {
         if (col.gameObject.tag == "Pipe")
         {
             speed = 0f;
+            StartCoroutine(GameOver());
         }
     }
     void OnColliderEnter2D(Collider2D col)

@@ -13,4 +13,14 @@ public class Menu : MonoBehaviour {
 	void Update () {
 		
 	}
+    public void Play()
+    {
+        GameObject.Find("Fade").GetComponent<Fade>().FadeOutIn(false);
+        StartCoroutine(Next());
+    }
+    IEnumerator Next()
+    {
+        yield return new WaitForSeconds(2.0f);
+        Application.LoadLevel("P1");
+    }
 }

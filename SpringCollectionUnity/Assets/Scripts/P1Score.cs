@@ -22,5 +22,6 @@ public class P1Score : MonoBehaviour {
     {
         score++;
         t.text = "" + score;
+        PlayerPrefs.SetInt("P1Score", score);
     }
 }
