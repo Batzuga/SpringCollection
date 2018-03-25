@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Menu : MonoBehaviour {
+public class P3 : MonoBehaviour {
+
 
 	// Use this for initialization
 	void Start () {
@@ -10,7 +11,15 @@ public class Menu : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
 		
 	}
+    void OnCollisionEnter2D (Collision2D col)
+    {
+        if(col.gameObject.tag == "Ground")
+        {
+
+        }
+    }
 }
